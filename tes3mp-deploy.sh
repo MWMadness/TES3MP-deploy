@@ -364,7 +364,7 @@ if [ $INSTALL ]; then
         sudo sed -i "s_# deb-src_deb-src_g" /etc/apt/sources.list
     ;;
 
-    "arch" | "parabola" | "manjarolinux" )
+    "arch" | "parabola" | "manjarolinux" | "endeavouros" )
         echo -e "You seem to be running either Arch Linux, Parabola GNU/Linux-libre or Manjaro"
         sudo pacman -Sy --needed unzip \
           wget \
