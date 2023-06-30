@@ -685,7 +685,7 @@ if [ $REBUILD ]; then
     else
       echo -e "\nUsing \"$TARGET_VERSION_STRING\" as version string"
       sed -i "s|#define TES3MP_VERSION .*|#define TES3MP_VERSION \"$TARGET_VERSION_STRING\"|g" ./components/openmw-mp/Version.hpp
-      sed -i "s|    if tes3mp.GetServerVersion() ~= .*|    if tes3mp.GetServerVersion() ~= \"$TARGET_VERSION_STRING\" then|g" "$KEEPERS"/CoreScripts/scripts/serverCore.lua
+      sed -i "s|    local expectedVersionPrefix = .*|    local expectedVersionPrefix = \"$TARGET_VERSION_STRING\"|g" "$KEEPERS"/CoreScripts/scripts/serverCore.lua
     fi
 
     cd "$BASE"
