@@ -510,7 +510,7 @@ press ENTER to continue"
 
   # Dirty hacks
   echo -e "\n>> Applying some dirty hacks"
-  sed -i "s|tes3mp.lua,chat_parser.lua|server.lua|g" "${KEEPERS}"/tes3mp-server-default.cfg #Fixes server scripts
+  sed -i "s|tes3mp.lua,chat_parser.lua|serverCore.lua|g" "${KEEPERS}"/tes3mp-server-default.cfg #Fixes server scripts
 
   # Build RakNet
   echo -e "\n>> Building RakNet"
@@ -685,7 +685,7 @@ if [ $REBUILD ]; then
     else
       echo -e "\nUsing \"$TARGET_VERSION_STRING\" as version string"
       sed -i "s|#define TES3MP_VERSION .*|#define TES3MP_VERSION \"$TARGET_VERSION_STRING\"|g" ./components/openmw-mp/Version.hpp
-      sed -i "s|    if tes3mp.GetServerVersion() ~= .*|    if tes3mp.GetServerVersion() ~= \"$TARGET_VERSION_STRING\" then|g" "$KEEPERS"/CoreScripts/scripts/server.lua
+      sed -i "s|    if tes3mp.GetServerVersion() ~= .*|    if tes3mp.GetServerVersion() ~= \"$TARGET_VERSION_STRING\" then|g" "$KEEPERS"/CoreScripts/scripts/serverCore.lua
     fi
 
     cd "$BASE"
