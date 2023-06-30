@@ -365,7 +365,7 @@ if [ $INSTALL ]; then
     ;;
 
     "arch" | "parabola" | "manjarolinux" | "endeavouros" )
-        echo -e "You seem to be running either Arch Linux, Parabola GNU/Linux-libre or Manjaro"
+        echo -e "You seem to be running either Arch Linux, Parabola GNU/Linux-libre, Manjaro, or EndeavourOS"
         sudo pacman -Sy --needed unzip \
           wget \
           git \
