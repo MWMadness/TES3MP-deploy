@@ -40,7 +40,7 @@ Peculiar options:
   --handle-version-file          Handle version file by overwritting it with a persistent one
 
 Please report bugs in the GitHub issue page or directly on the TES3MP Discord.
-https://github.com/GrimKriegor/TES3MP-deploy
+https://github.com/MWMadness/TES3MP-deploy
 "
 
 SCRIPT_DIR="$(dirname $(readlink -f $0))"
@@ -286,7 +286,7 @@ if [ $SCRIPT_UPGRADE ]; then
   else
     echo -e "\n>>Downloading TES3MP-deploy from GitHub"
     mv "$0" "$SCRIPT_BASE"/.tes3mp-deploy.sh.bkp
-    wget --no-verbose -O "$SCRIPT_BASE"/tes3mp-deploy.sh https://raw.githubusercontent.com/GrimKriegor/TES3MP-deploy/master/tes3mp-deploy.sh
+    wget --no-verbose -O "$SCRIPT_BASE"/tes3mp-deploy.sh https://raw.githubusercontent.com/MWMadness/TES3MP-deploy/master/tes3mp-deploy.sh
     chmod +x "$SCRIPT_BASE"/tes3mp-deploy.sh
   fi
 
@@ -496,9 +496,9 @@ press ENTER to continue"
 
   # Pull software via git
   echo -e "\n>> Downloading software"
-  ! [ -e "$CODE" ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/TES3MP/TES3MP.git "$CODE"
-  ! [ -e "$DEPENDENCIES"/raknet ] && git clone https://github.com/TES3MP/CrabNet "$DEPENDENCIES"/raknet
-  ! [ -e "$KEEPERS"/CoreScripts ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/TES3MP/CoreScripts.git "$KEEPERS"/CoreScripts
+  ! [ -e "$CODE" ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/MWMadness/S3MP.git "$CODE"
+  ! [ -e "$DEPENDENCIES"/raknet ] && git clone https://github.com/MWMadness/CrabNet "$DEPENDENCIES"/raknet
+  ! [ -e "$KEEPERS"/CoreScripts ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/MWMadness/CoreScripts.git "$KEEPERS"/CoreScripts
 
   # Copy static server and client configs
   echo -e "\n>> Copying server and client configs to their permanent place"
