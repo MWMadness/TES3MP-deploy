@@ -24,6 +24,7 @@ Modes of operation:
   -r, --rebuild                  Simply rebuild TES3MP
   -y, --script-upgrade           Upgrade the TES3MP-deploy script
   -p, --make-package             Make a portable package for easy distribution
+  -m, --build-master             Build the master server
   -h, --help                     This help text
 
 Options:
@@ -187,6 +188,12 @@ else
       fi
     ;;
 
+    # Build master server
+    -m | --build-master )
+      BUILD_MASTER=true
+      touch .buildmaster
+    ;;
+
     # Run in container
     -C | --container )
       if [[ "$2" =~ ^-.* || "$2" =~ "" ]]; then
@@ -260,6 +267,11 @@ RAKNET_LOCATION="$DEPENDENCIES"/raknet
 # Check if this is a server only install
 if [ -f "$BASE"/.serveronly ]; then
   SERVER_ONLY=true
+fi
+
+# Check if master server is supposed to be built
+if [ -f "$BASE"/.buildmaster ]; then
+  BUILD_MASTER=true
 fi
 
 # Check if there is a persistent version file
@@ -736,6 +748,11 @@ if [ $REBUILD ]; then
       -DBUILD_OPENMW=OFF \
       -DBUILD_NIFTEST=OFF \
       -DBUILD_WIZARD=OFF"
+  fi
+
+  if [ $BUILD_MASTER ]; then
+    CMAKE_PARAMS="$CMAKE_PARAMS \
+      -DBUILD_MASTER=ON"
   fi
 
   if [ $CMAKE_LOCAL ]; then
