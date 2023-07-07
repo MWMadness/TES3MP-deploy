@@ -496,7 +496,8 @@ press ENTER to continue"
 
   # Pull software via git
   echo -e "\n>> Downloading software"
-  ! [ -e "$CODE" ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/MWMadness/S3-MP.git "$CODE"
+  ! [ -e "$CODE" ] && git clone -b saint-master-merge https://github.com/MWMadness/S3-MP.git "$CODE"
+  # ! [ -e "$CODE" ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/MWMadness/S3-MP.git "$CODE"
   ! [ -e "$DEPENDENCIES"/raknet ] && git clone https://github.com/MWMadness/CrabNet "$DEPENDENCIES"/raknet
   ! [ -e "$KEEPERS"/CoreScripts ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/MWMadness/CoreScripts.git "$KEEPERS"/CoreScripts
 
@@ -515,7 +516,7 @@ press ENTER to continue"
   # Build RakNet
   echo -e "\n>> Building RakNet"
   cd "$DEPENDENCIES"/raknet
-  # git checkout 19e66190e83f53bcdcbcd6513238ed2e54878a21
+  git checkout 19e66190e83f53bcdcbcd6513238ed2e54878a21
 
   mkdir -p "$DEPENDENCIES"/raknet/build
   cd "$DEPENDENCIES"/raknet/build
