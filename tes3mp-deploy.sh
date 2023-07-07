@@ -428,6 +428,7 @@ press ENTER to continue"
           libswresample-dev \
           libmygui-dev \
           libunshield-dev \
+          libyaml-cpp-dev \
           cmake \
           build-essential \
           g++ \
