@@ -349,6 +349,7 @@ if [ $INSTALL ]; then
           libswresample-dev \
           libmygui-dev \
           libunshield-dev \
+          libyaml-cpp-dev \
           cmake \
           build-essential \
           g++ \
@@ -381,6 +382,7 @@ if [ $INSTALL ]; then
           unshield \
           libxkbcommon-x11 \
           ncurses \
+          yaml-cpp \
           luajit
         if [ ! -d "/usr/share/licenses/gcc-libs-multilib/" ]; then
               sudo pacman -S --needed gcc-libs
