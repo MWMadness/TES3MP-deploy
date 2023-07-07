@@ -496,8 +496,8 @@ press ENTER to continue"
 
   # Pull software via git
   echo -e "\n>> Downloading software"
-  ! [ -e "$CODE" ] && git clone -b saint-master-merge https://github.com/MWMadness/S3-MP.git "$CODE"
-  # ! [ -e "$CODE" ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/MWMadness/S3-MP.git "$CODE"
+  # ! [ -e "$CODE" ] && git clone -b saint-master-merge https://github.com/MWMadness/S3-MP.git "$CODE"
+  ! [ -e "$CODE" ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/MWMadness/S3-MP.git "$CODE"
   ! [ -e "$DEPENDENCIES"/raknet ] && git clone https://github.com/MWMadness/CrabNet "$DEPENDENCIES"/raknet
   ! [ -e "$KEEPERS"/CoreScripts ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/MWMadness/CoreScripts.git "$KEEPERS"/CoreScripts
 
