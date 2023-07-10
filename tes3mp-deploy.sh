@@ -532,7 +532,7 @@ press ENTER to continue"
   # Build RakNet
   echo -e "\n>> Building RakNet"
   cd "$DEPENDENCIES"/raknet
-  git checkout 19e66190e83f53bcdcbcd6513238ed2e54878a21
+  git checkout af1a20b48e50ef2d19f0699133140bb15847b370
 
   mkdir -p "$DEPENDENCIES"/raknet/build
   cd "$DEPENDENCIES"/raknet/build
