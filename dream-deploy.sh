@@ -4,12 +4,13 @@ set -e
 
 VERSION="2.21.3"
 
-TES3MP_STABLE_VERSION="0.8.1"
-TES3MP_STABLE_VERSION_FILE="0.47.0\n68954091c54d0596037c4fb54d2812313b7582a1"
-TES3MP_FORGE_VERSION="2.4.0"
+DW_STABLE_VERSION="0.8.1"
+DW_STABLE_VERSION_FILE="0.47.0\n68954091c54d0596037c4fb54d2812313b7582a1"
+DW_FORGE_VERSION="2.4.0"
 
 HELP_TEXT_HEADER="\
-TES3MP-deploy ($VERSION)
+dream-deploy ($VERSION)
+Original script by:
 Grim Kriegor <grim@kriegor.net>
 Licensed under the GNU GPLv3 free license
 "
@@ -18,19 +19,19 @@ HELP_TEXT_BODY="\
 Usage $0 MODE [OPTIONS]
 
 Modes of operation:
-  -i, --install                  Prepare and install TES3MP and its dependencies
-  -u, --upgrade                  Upgrade TES3MP
-  -a, --auto-upgrade             Automatically upgrade TES3MP if there are changes on the remote repository
-  -r, --rebuild                  Simply rebuild TES3MP
-  -y, --script-upgrade           Upgrade the TES3MP-deploy script
+  -i, --install                  Prepare and install DreamWeave and its dependencies
+  -u, --upgrade                  Upgrade DreamWeave
+  -a, --auto-upgrade             Automatically upgrade DreamWeave if there are changes on the remote repository
+  -r, --rebuild                  Simply rebuild DreamWeave
+  -y, --script-upgrade           Upgrade the Dream-deploy script
   -p, --make-package             Make a portable package for easy distribution
   -m, --build-master             Build the master server
   -h, --help                     This help text
 
 Options:
   -s, --server-only              Only build the server
-  -c, --cores N                  Use N cores for building TES3MP and its dependencies
-  -v, --version ID               Checkout and build a specific TES3MP commit or branch
+  -c, --cores N                  Use N cores for building DreamWeave and its dependencies
+  -v, --version ID               Checkout and build a specific DreamWeave commit or branch
   -V, --version-string STRING    Set the version string for compatibility
   -C, --container [ARCH]         Run inside a container, optionally specify container architecture
 
@@ -41,7 +42,7 @@ Peculiar options:
   --handle-version-file          Handle version file by overwritting it with a persistent one
 
 Please report bugs in the GitHub issue page or directly on the TES3MP Discord.
-https://github.com/MWMadness/TES3MP-deploy
+https://github.com/DreamWeave-MP/TES3MP-deploy
 "
 
 SCRIPT_DIR="$(dirname $(readlink -f $0))"
@@ -61,7 +62,7 @@ function run_in_container() {
   SCRIPT_ARGUMENTS=$(echo "$@" | sed 's/-C//;s/--container//')
 
   # Defaults
-  CONTAINER_IMAGE="docker.io/grimkriegor/tes3mp-forge:$TES3MP_FORGE_VERSION"
+  CONTAINER_IMAGE="docker.io/grimkriegor/tes3mp-forge:$DW_FORGE_VERSION"
   CONTAINER_FOLDER_NAME="container"
   CONTAINER_DEFAULT_ARGS="--skip-pkgs --cmake-local"
   CONTAINER_PLATFORM_CMD="--arch amd64"
@@ -90,12 +91,12 @@ function run_in_container() {
   echo -e "\n[!] Now running inside the TES3MP-forge container [!]\n"
   mkdir -p "$SCRIPT_DIR/$CONTAINER_FOLDER_NAME"
   eval $(which docker) run --rm -it \
-    -v "$SCRIPT_DIR/tes3mp-deploy.sh":"/deploy/tes3mp-deploy.sh" \
+    -v "$SCRIPT_DIR/dream-deploy.sh":"/deploy/dream-deploy.sh" \
     -v "$SCRIPT_DIR/$CONTAINER_FOLDER_NAME":"/build" \
     $CONTAINER_PLATFORM_CMD \
     --entrypoint "/bin/bash" \
     "$CONTAINER_IMAGE" \
-    /deploy/tes3mp-deploy.sh "$CONTAINER_DEFAULT_ARGS" "$SCRIPT_ARGUMENTS"
+    /deploy/dream-deploy.sh "$CONTAINER_DEFAULT_ARGS" "$SCRIPT_ARGUMENTS"
   exit 0
 }
 
@@ -287,22 +288,22 @@ fi
 # Upgrade the TES3MP-deploy script
 if [ $SCRIPT_UPGRADE ]; then
 
-  SCRIPT_OLD_VERSION=$(cat "$SCRIPT_BASE"/tes3mp-deploy.sh | grep ^VERSION= | cut -d'"' -f2)
+  SCRIPT_OLD_VERSION=$(cat "$SCRIPT_BASE"/dream-deploy.sh | grep ^VERSION= | cut -d'"' -f2)
 
   if [ -d "$SCRIPT_BASE"/.git ]; then
-    echo -e "\n>>Upgrading the TES3MP-deploy git repository"
+    echo -e "\n>>Upgrading the dream-deploy git repository"
     cd "$SCRIPT_BASE"
     git stash
     git pull
     cd "$BASE"
   else
-    echo -e "\n>>Downloading TES3MP-deploy from GitHub"
-    mv "$0" "$SCRIPT_BASE"/.tes3mp-deploy.sh.bkp
-    wget --no-verbose -O "$SCRIPT_BASE"/tes3mp-deploy.sh https://raw.githubusercontent.com/MWMadness/TES3MP-deploy/master/tes3mp-deploy.sh
-    chmod +x "$SCRIPT_BASE"/tes3mp-deploy.sh
+    echo -e "\n>>Downloading dream-deploy from GitHub"
+    mv "$0" "$SCRIPT_BASE"/.dream-deploy.sh.bkp
+    wget --no-verbose -O "$SCRIPT_BASE"/dream-deploy.sh https://raw.githubusercontent.com/DreamWeave-MP/dream-deploy/master/dream-deploy.sh
+    chmod +x "$SCRIPT_BASE"/dream-deploy.sh
   fi
 
-  SCRIPT_NEW_VERSION=$(cat "$SCRIPT_BASE"/tes3mp-deploy.sh | grep ^VERSION= | cut -d'"' -f2)
+  SCRIPT_NEW_VERSION=$(cat "$SCRIPT_BASE"/dream-deploy.sh | grep ^VERSION= | cut -d'"' -f2)
 
   if [ "$SCRIPT_NEW_VERSION" == "" ]; then
     echo -e "\nThere was a problem downloading the script, exiting."
@@ -335,8 +336,8 @@ if [ $INSTALL ]; then
 
     "debian" | "devuan" )
         echo -e "You seem to be running Debian or Devuan"
-        sudo apt-get update
-        sudo apt-get install \
+        apt-get update
+         apt-get install \
           unzip \
           wget \
           git \
@@ -506,16 +507,15 @@ press ENTER to continue"
 
   # Truncate target_commit when it points to stable
   if [ "$TARGET_COMMIT" == "stable" ]; then
-    TARGET_COMMIT="$TES3MP_STABLE_VERSION"
+    TARGET_COMMIT="$DW_STABLE_VERSION"
   fi
 
   # Pull software via git
   echo -e "\n>> Downloading software"
-  ! [ -e "$CODE" ] && git clone -b saint-master-merge https://github.com/MWMadness/S3-MP.git "$CODE"
-  # ! [ -e "$CODE" ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/MWMadness/S3-MP.git "$CODE"
-  ! [ -e "$DEPENDENCIES"/raknet ] && git clone https://github.com/MWMadness/CrabNet "$DEPENDENCIES"/raknet
-  # ! [ -e "$KEEPERS"/CoreScripts ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/MWMadness/CoreScripts.git "$KEEPERS"/CoreScripts
-  ! [ -e "$KEEPERS"/CoreScripts ] && git clone -b saint-master-merge https://github.com/MWMadness/CoreScripts.git "$KEEPERS"/CoreScripts
+  ! [ -e "$CODE" ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/DreamWeave-MP/DreamWeave.git "$CODE"
+  ! [ -e "$DEPENDENCIES"/raknet ] && git clone https://github.com/DreamWeave-MP/CrabNet "$DEPENDENCIES"/raknet
+  ! [ -e "$KEEPERS"/CoreScripts ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/DreamWeave-MP/CoreScripts.git "$KEEPERS"/CoreScripts
+  # ! [ -e "$KEEPERS"/CoreScripts ] && git clone -b saint-master-merge https://github.com/DreamWeave-MP/CoreScripts.git "$KEEPERS"/CoreScripts
 
   # Copy static server and client configs
   echo -e "\n>> Copying server and client configs to their permanent place"
@@ -555,7 +555,7 @@ press ENTER to continue"
     cd "$KEEPERS"/CoreScripts
     git stash
     git pull
-    git checkout "$TES3MP_STABLE_VERSION"
+    git checkout "$DW_STABLE_VERSION"
     cd "$BASE"
 
     # Handle version file
@@ -605,7 +605,7 @@ if [ $UPGRADE ]; then
       exit 0
     fi
   else
-    echo -e "\nDo you wish to rebuild TES3MP? (type YES to continue)"
+    echo -e "\nDo you wish to rebuild DreamWeave? (type YES to continue)"
     read REBUILD_PROMPT
     if [ "$REBUILD_PROMPT" == "YES" ]; then
       REBUILD="YES"
@@ -640,10 +640,10 @@ if [ $HANDLE_CORESCRIPTS ]; then
       git pull
       git checkout master
     elif [ "$TARGET_COMMIT" == "stable" ]; then
-      echo -e "\nChecking out the CoreScripts stable branch. \"$TES3MP_STABLE_VERSION\""
+      echo -e "\nChecking out the CoreScripts stable branch. \"$DW_STABLE_VERSION\""
       git stash
       git pull
-      git checkout "$TES3MP_STABLE_VERSION"
+      git checkout "$DW_STABLE_VERSION"
     else
       echo -e "\nChecking out CoreScripts $TARGET_COMMIT"
       git stash
@@ -667,13 +667,13 @@ if [ $REBUILD ]; then
       git pull
       git checkout master
     elif [ "$TARGET_COMMIT" == "stable" ]; then
-      echo -e "\nChecking out the stable branch. \"$TES3MP_STABLE_VERSION\""
+      echo -e "\nChecking out the stable branch. \"$DW_STABLE_VERSION\""
       git stash
       git pull
-      git checkout "$TES3MP_STABLE_VERSION"
+      git checkout "$DW_STABLE_VERSION"
       if [ $HANDLE_VERSION_FILE ]; then
         echo -e "\n>> Creating persistent version file"
-        echo -e $TES3MP_STABLE_VERSION_FILE > "$KEEPERS"/version
+        echo -e $DW_STABLE_VERSION_FILE > "$KEEPERS"/version
       fi
     else
       echo -e "\nChecking out $TARGET_COMMIT"
