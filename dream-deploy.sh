@@ -532,13 +532,12 @@ press ENTER to continue"
   # Build RakNet
   echo -e "\n>> Building RakNet"
   cd "$DEPENDENCIES"/raknet
-  git checkout af1a20b48e50ef2d19f0699133140bb15847b370
 
   mkdir -p "$DEPENDENCIES"/raknet/build
   cd "$DEPENDENCIES"/raknet/build
 
   rm -f CMakeCache.txt
-  cmake -DCMAKE_BUILD_TYPE=Release -DRAKNET_ENABLE_DLL=OFF -DRAKNET_ENABLE_SAMPLES=OFF -DRAKNET_ENABLE_STATIC=ON -DRAKNET_GENERATE_INCLUDE_ONLY_DIR=ON ..
+  cmake -DCMAKE_BUILD_TYPE=Release ..
   make -j$CORES
 
   ln -sf "$DEPENDENCIES"/raknet/include/RakNet "$DEPENDENCIES"/raknet/include/raknet #Stop being so case sensitive
