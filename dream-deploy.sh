@@ -727,7 +727,7 @@ if [ $REBUILD ]; then
       -DCMAKE_BUILD_TYPE=Release \
       -DBUILD_OPENCS=OFF \
       -DCMAKE_CXX_STANDARD=14 \
-      -DCMAKE_CXX_FLAGS=\"-std=c++14\" \
+      -DCMAKE_CXX_FLAGS=-std=c++14 \
       -DDESIRED_QT_VERSION=5 \
       -DRakNet_INCLUDES="${RAKNET_LOCATION}"/include \
       -DRakNet_LIBRARY_DEBUG="${RAKNET_LOCATION}"/build/lib/libRakNetLibStatic.a \
