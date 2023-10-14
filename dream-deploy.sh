@@ -31,6 +31,7 @@ Modes of operation:
 Options:
   -s, --server-only              Only build the server
   -c, --cores N                  Use N cores for building DreamWeave and its dependencies
+  -d, --dirty                    Keep already-compiled objects when doing successive builds (a lot faster) 
   -v, --version ID               Checkout and build a specific DreamWeave commit or branch
   -V, --version-string STRING    Set the version string for compatibility
   -C, --container [ARCH]         Run inside a container, optionally specify container architecture
@@ -222,7 +223,12 @@ else
     # Handle version file
     --handle-version-file )
       HANDLE_VERSION_FILE=true
-    ;;
+      ;;
+
+    # Do dirty builds
+    -d | --dirty )
+        DIRTY=true
+        ;;
 
     esac
     shift
@@ -718,7 +724,10 @@ if [ $REBUILD ]; then
 
   echo -e "\n>> Doing a clean build of TES3MP"
 
-  rm -r "$DEVELOPMENT"
+  if [ ! $DIRTY ]; then
+      rm -r "$DEVELOPMENT"
+  fi
+
   mkdir -p "$DEVELOPMENT"
 
   cd "$DEVELOPMENT"
