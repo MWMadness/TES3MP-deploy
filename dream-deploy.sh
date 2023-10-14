@@ -4,12 +4,13 @@ set -e
 
 VERSION="2.21.3"
 
-TES3MP_STABLE_VERSION="0.8.1"
-TES3MP_STABLE_VERSION_FILE="0.47.0\n68954091c54d0596037c4fb54d2812313b7582a1"
-TES3MP_FORGE_VERSION="2.4.0"
+DW_STABLE_VERSION="0.8.1"
+DW_STABLE_VERSION_FILE="0.47.0\n68954091c54d0596037c4fb54d2812313b7582a1"
+DW_FORGE_VERSION="2.4.0"
 
 HELP_TEXT_HEADER="\
-TES3MP-deploy ($VERSION)
+dream-deploy ($VERSION)
+Original script by:
 Grim Kriegor <grim@kriegor.net>
 Licensed under the GNU GPLv3 free license
 "
@@ -18,19 +19,20 @@ HELP_TEXT_BODY="\
 Usage $0 MODE [OPTIONS]
 
 Modes of operation:
-  -i, --install                  Prepare and install TES3MP and its dependencies
-  -u, --upgrade                  Upgrade TES3MP
-  -a, --auto-upgrade             Automatically upgrade TES3MP if there are changes on the remote repository
-  -r, --rebuild                  Simply rebuild TES3MP
-  -y, --script-upgrade           Upgrade the TES3MP-deploy script
+  -i, --install                  Prepare and install DreamWeave and its dependencies
+  -u, --upgrade                  Upgrade DreamWeave
+  -a, --auto-upgrade             Automatically upgrade DreamWeave if there are changes on the remote repository
+  -r, --rebuild                  Simply rebuild DreamWeave
+  -y, --script-upgrade           Upgrade the Dream-deploy script
   -p, --make-package             Make a portable package for easy distribution
   -m, --build-master             Build the master server
   -h, --help                     This help text
 
 Options:
   -s, --server-only              Only build the server
-  -c, --cores N                  Use N cores for building TES3MP and its dependencies
-  -v, --version ID               Checkout and build a specific TES3MP commit or branch
+  -c, --cores N                  Use N cores for building DreamWeave and its dependencies
+  -d, --dirty                    Keep already-compiled objects when doing successive builds (a lot faster)
+  -v, --version ID               Checkout and build a specific DreamWeave commit or branch
   -V, --version-string STRING    Set the version string for compatibility
   -C, --container [ARCH]         Run inside a container, optionally specify container architecture
 
@@ -40,8 +42,8 @@ Peculiar options:
   --handle-corescripts           Handle CoreScripts, pulls and branch switches
   --handle-version-file          Handle version file by overwritting it with a persistent one
 
-Please report bugs in the GitHub issue page or directly on the TES3MP Discord.
-https://github.com/MWMadness/TES3MP-deploy
+Please report bugs in the GitHub issue page or directly on the Dreamweave Discord.
+https://github.com/DreamWeave-MP/dream-deploy
 "
 
 SCRIPT_DIR="$(dirname $(readlink -f $0))"
@@ -61,7 +63,7 @@ function run_in_container() {
   SCRIPT_ARGUMENTS=$(echo "$@" | sed 's/-C//;s/--container//')
 
   # Defaults
-  CONTAINER_IMAGE="docker.io/grimkriegor/tes3mp-forge:$TES3MP_FORGE_VERSION"
+  CONTAINER_IMAGE="docker.io/grimkriegor/tes3mp-forge:$DW_FORGE_VERSION"
   CONTAINER_FOLDER_NAME="container"
   CONTAINER_DEFAULT_ARGS="--skip-pkgs --cmake-local"
   CONTAINER_PLATFORM_CMD="--arch amd64"
@@ -87,15 +89,15 @@ function run_in_container() {
   eval $(which docker) pull "$CONTAINER_PLATFORM_CMD" "$CONTAINER_IMAGE"
 
   # Run through container
-  echo -e "\n[!] Now running inside the TES3MP-forge container [!]\n"
+  echo -e "\n[!] Now running inside the DreamForge container [!]\n"
   mkdir -p "$SCRIPT_DIR/$CONTAINER_FOLDER_NAME"
   eval $(which docker) run --rm -it \
-    -v "$SCRIPT_DIR/tes3mp-deploy.sh":"/deploy/tes3mp-deploy.sh" \
+    -v "$SCRIPT_DIR/dream-deploy.sh":"/deploy/dream-deploy.sh" \
     -v "$SCRIPT_DIR/$CONTAINER_FOLDER_NAME":"/build" \
     $CONTAINER_PLATFORM_CMD \
     --entrypoint "/bin/bash" \
     "$CONTAINER_IMAGE" \
-    /deploy/tes3mp-deploy.sh "$CONTAINER_DEFAULT_ARGS" "$SCRIPT_ARGUMENTS"
+    /deploy/dream-deploy.sh "$CONTAINER_DEFAULT_ARGS" "$SCRIPT_ARGUMENTS"
   exit 0
 }
 
@@ -116,7 +118,7 @@ else
       exit 1
     ;;
 
-    # Install dependencies and build TES3MP
+    # Install dependencies and build Dreamweave
     -i | --install )
       INSTALL=true
       REBUILD=true
@@ -133,7 +135,7 @@ else
       AUTO_UPGRADE=true
     ;;
 
-    # Rebuild tes3mp
+    # Rebuild Dreamweave
     -r | --rebuild )
       REBUILD=true
     ;;
@@ -221,7 +223,12 @@ else
     # Handle version file
     --handle-version-file )
       HANDLE_VERSION_FILE=true
-    ;;
+      ;;
+
+    # Do dirty builds
+    -d | --dirty )
+        DIRTY=true
+        ;;
 
     esac
     shift
@@ -284,25 +291,25 @@ if [ $CMAKE_LOCAL ]; then
   export LD_LIBRARY_PATH=/usr/local/lib64:/usr/local/lib:"$LD_LIBRARY_PATH"
 fi
 
-# Upgrade the TES3MP-deploy script
+# Upgrade the dream-deploy script
 if [ $SCRIPT_UPGRADE ]; then
 
-  SCRIPT_OLD_VERSION=$(cat "$SCRIPT_BASE"/tes3mp-deploy.sh | grep ^VERSION= | cut -d'"' -f2)
+  SCRIPT_OLD_VERSION=$(cat "$SCRIPT_BASE"/dream-deploy.sh | grep ^VERSION= | cut -d'"' -f2)
 
   if [ -d "$SCRIPT_BASE"/.git ]; then
-    echo -e "\n>>Upgrading the TES3MP-deploy git repository"
+    echo -e "\n>>Upgrading the dream-deploy git repository"
     cd "$SCRIPT_BASE"
     git stash
     git pull
     cd "$BASE"
   else
-    echo -e "\n>>Downloading TES3MP-deploy from GitHub"
-    mv "$0" "$SCRIPT_BASE"/.tes3mp-deploy.sh.bkp
-    wget --no-verbose -O "$SCRIPT_BASE"/tes3mp-deploy.sh https://raw.githubusercontent.com/MWMadness/TES3MP-deploy/master/tes3mp-deploy.sh
-    chmod +x "$SCRIPT_BASE"/tes3mp-deploy.sh
+    echo -e "\n>>Downloading dream-deploy from GitHub"
+    mv "$0" "$SCRIPT_BASE"/.dream-deploy.sh.bkp
+    wget --no-verbose -O "$SCRIPT_BASE"/dream-deploy.sh https://raw.githubusercontent.com/DreamWeave-MP/dream-deploy/master/dream-deploy.sh
+    chmod +x "$SCRIPT_BASE"/dream-deploy.sh
   fi
 
-  SCRIPT_NEW_VERSION=$(cat "$SCRIPT_BASE"/tes3mp-deploy.sh | grep ^VERSION= | cut -d'"' -f2)
+  SCRIPT_NEW_VERSION=$(cat "$SCRIPT_BASE"/dream-deploy.sh | grep ^VERSION= | cut -d'"' -f2)
 
   if [ "$SCRIPT_NEW_VERSION" == "" ]; then
     echo -e "\nThere was a problem downloading the script, exiting."
@@ -335,8 +342,8 @@ if [ $INSTALL ]; then
 
     "debian" | "devuan" )
         echo -e "You seem to be running Debian or Devuan"
-        sudo apt-get update
-        sudo apt-get install \
+        apt-get update
+         apt-get install \
           unzip \
           wget \
           git \
@@ -506,39 +513,37 @@ press ENTER to continue"
 
   # Truncate target_commit when it points to stable
   if [ "$TARGET_COMMIT" == "stable" ]; then
-    TARGET_COMMIT="$TES3MP_STABLE_VERSION"
+    TARGET_COMMIT="$DW_STABLE_VERSION"
   fi
 
   # Pull software via git
   echo -e "\n>> Downloading software"
-  ! [ -e "$CODE" ] && git clone -b saint-master-merge https://github.com/MWMadness/S3-MP.git "$CODE"
-  # ! [ -e "$CODE" ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/MWMadness/S3-MP.git "$CODE"
-  ! [ -e "$DEPENDENCIES"/raknet ] && git clone https://github.com/MWMadness/CrabNet "$DEPENDENCIES"/raknet
-  # ! [ -e "$KEEPERS"/CoreScripts ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/MWMadness/CoreScripts.git "$KEEPERS"/CoreScripts
-  ! [ -e "$KEEPERS"/CoreScripts ] && git clone -b saint-master-merge https://github.com/MWMadness/CoreScripts.git "$KEEPERS"/CoreScripts
+  ! [ -e "$CODE" ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/DreamWeave-MP/DreamWeave.git "$CODE"
+  ! [ -e "$DEPENDENCIES"/raknet ] && git clone https://github.com/DreamWeave-MP/CrabNet "$DEPENDENCIES"/raknet
+  ! [ -e "$KEEPERS"/CoreScripts ] && git clone -b "${TARGET_COMMIT:-master}" https://github.com/DreamWeave-MP/CoreScripts.git "$KEEPERS"/CoreScripts
+  # ! [ -e "$KEEPERS"/CoreScripts ] && git clone -b saint-master-merge https://github.com/DreamWeave-MP/CoreScripts.git "$KEEPERS"/CoreScripts
 
   # Copy static server and client configs
   echo -e "\n>> Copying server and client configs to their permanent place"
-  cp "$CODE"/files/tes3mp/tes3mp-{client,server}-default.cfg "$KEEPERS"
+  cp "$CODE"/files/dreamweave/dreamweave-{client,server}-default.cfg "$KEEPERS"
 
-  # Set home variable in tes3mp-server-default.cfg
+  # Set home variable in dreamweave-server-default.cfg
   echo -e "\n>> Autoconfiguring"
-  sed -i "s|home = .*|home = $KEEPERS/CoreScripts|g" "${KEEPERS}"/tes3mp-server-default.cfg
+  sed -i "s|home = .*|home = $KEEPERS/CoreScripts|g" "${KEEPERS}"/dreamweave-server-default.cfg
 
   # Dirty hacks
   echo -e "\n>> Applying some dirty hacks"
-  sed -i "s|tes3mp.lua,chat_parser.lua|serverCore.lua|g" "${KEEPERS}"/tes3mp-server-default.cfg #Fixes server scripts
+  sed -i "s|chat_parser.lua|serverCore.lua|g" "${KEEPERS}"/dreamweave-server-default.cfg #Fixes server scripts
 
   # Build RakNet
   echo -e "\n>> Building RakNet"
   cd "$DEPENDENCIES"/raknet
-  git checkout af1a20b48e50ef2d19f0699133140bb15847b370
 
   mkdir -p "$DEPENDENCIES"/raknet/build
   cd "$DEPENDENCIES"/raknet/build
 
   rm -f CMakeCache.txt
-  cmake -DCMAKE_BUILD_TYPE=Release -DRAKNET_ENABLE_DLL=OFF -DRAKNET_ENABLE_SAMPLES=OFF -DRAKNET_ENABLE_STATIC=ON -DRAKNET_GENERATE_INCLUDE_ONLY_DIR=ON ..
+  cmake -DCMAKE_BUILD_TYPE=Release ..
   make -j$CORES
 
   ln -sf "$DEPENDENCIES"/raknet/include/RakNet "$DEPENDENCIES"/raknet/include/raknet #Stop being so case sensitive
@@ -555,7 +560,7 @@ press ENTER to continue"
     cd "$KEEPERS"/CoreScripts
     git stash
     git pull
-    git checkout "$TES3MP_STABLE_VERSION"
+    git checkout "$DW_STABLE_VERSION"
     cd "$BASE"
 
     # Handle version file
@@ -605,7 +610,7 @@ if [ $UPGRADE ]; then
       exit 0
     fi
   else
-    echo -e "\nDo you wish to rebuild TES3MP? (type YES to continue)"
+    echo -e "\nDo you wish to rebuild DreamWeave? (type YES to continue)"
     read REBUILD_PROMPT
     if [ "$REBUILD_PROMPT" == "YES" ]; then
       REBUILD="YES"
@@ -640,10 +645,10 @@ if [ $HANDLE_CORESCRIPTS ]; then
       git pull
       git checkout master
     elif [ "$TARGET_COMMIT" == "stable" ]; then
-      echo -e "\nChecking out the CoreScripts stable branch. \"$TES3MP_STABLE_VERSION\""
+      echo -e "\nChecking out the CoreScripts stable branch. \"$DW_STABLE_VERSION\""
       git stash
       git pull
-      git checkout "$TES3MP_STABLE_VERSION"
+      git checkout "$DW_STABLE_VERSION"
     else
       echo -e "\nChecking out CoreScripts $TARGET_COMMIT"
       git stash
@@ -655,7 +660,7 @@ if [ $HANDLE_CORESCRIPTS ]; then
 
 fi
 
-# Rebuild TES3MP
+# Rebuild Dreamweave
 if [ $REBUILD ]; then
 
   # Switch to a specific commit
@@ -667,13 +672,13 @@ if [ $REBUILD ]; then
       git pull
       git checkout master
     elif [ "$TARGET_COMMIT" == "stable" ]; then
-      echo -e "\nChecking out the stable branch. \"$TES3MP_STABLE_VERSION\""
+      echo -e "\nChecking out the stable branch. \"$DW_STABLE_VERSION\""
       git stash
       git pull
-      git checkout "$TES3MP_STABLE_VERSION"
+      git checkout "$DW_STABLE_VERSION"
       if [ $HANDLE_VERSION_FILE ]; then
         echo -e "\n>> Creating persistent version file"
-        echo -e $TES3MP_STABLE_VERSION_FILE > "$KEEPERS"/version
+        echo -e $DW_STABLE_VERSION_FILE > "$KEEPERS"/version
       fi
     else
       echo -e "\nChecking out $TARGET_COMMIT"
@@ -701,7 +706,7 @@ if [ $REBUILD ]; then
       cd "$CODE"
     else
       echo -e "\nUsing \"$TARGET_VERSION_STRING\" as version string"
-      sed -i "s|#define TES3MP_VERSION .*|#define TES3MP_VERSION \"$TARGET_VERSION_STRING\"|g" ./components/openmw-mp/Version.hpp
+      sed -i "s|#define DREAMWEAVE_VERSION .*|#define DREAMWEAVE_VERSION \"$TARGET_VERSION_STRING\"|g" ./components/openmw-mp/Version.hpp
       sed -i "s|    local expectedVersionPrefix = .*|    local expectedVersionPrefix = \"$TARGET_VERSION_STRING\"|g" "$KEEPERS"/CoreScripts/scripts/serverCore.lua
     fi
 
@@ -717,9 +722,12 @@ if [ $REBUILD ]; then
     cd "$BASE"
   fi
 
-  echo -e "\n>> Doing a clean build of TES3MP"
+  echo -e "\n>> Doing a clean build of Dreamweave"
 
-  rm -r "$DEVELOPMENT"
+  if [ ! $DIRTY ]; then
+      rm -r "$DEVELOPMENT"
+  fi
+
   mkdir -p "$DEVELOPMENT"
 
   cd "$DEVELOPMENT"
@@ -728,7 +736,7 @@ if [ $REBUILD ]; then
       -DCMAKE_BUILD_TYPE=Release \
       -DBUILD_OPENCS=OFF \
       -DCMAKE_CXX_STANDARD=14 \
-      -DCMAKE_CXX_FLAGS=\"-std=c++14\" \
+      -DCMAKE_CXX_FLAGS=-std=c++14 \
       -DDESIRED_QT_VERSION=5 \
       -DRakNet_INCLUDES="${RAKNET_LOCATION}"/include \
       -DRakNet_LIBRARY_DEBUG="${RAKNET_LOCATION}"/build/lib/libRakNetLibStatic.a \
@@ -784,9 +792,9 @@ if [ $REBUILD ]; then
   # Create useful shortcuts on the base directory
   echo -e "\n>> Creating useful shortcuts on the base directory"
   if [ $SERVER_ONLY ]; then
-    SHORTCUTS=( "tes3mp-server" )
+    SHORTCUTS=( "dreamweave-server" )
   else
-    SHORTCUTS=( "tes3mp" "tes3mp-browser" "tes3mp-server" )
+    SHORTCUTS=( "dreamweave" "dreamweave-browser" "dreamweave-server" )
   fi
   for i in ${SHORTCUTS[@]}; do
     printf "#!/bin/bash\n\ncd build/\n./$i\ncd .." > "$i".sh
@@ -804,6 +812,7 @@ if [ $REBUILD ]; then
   echo -e "\n>> Copying creditation files"
   cp "$CODE"/AUTHORS.md "$DEVELOPMENT"
   cp "$CODE"/tes3mp-credits.md "$DEVELOPMENT"
+  cp "$CODE"/dreamweave-credits.md "$DEVELOPMENT"
 
   # All done
   echo -e "\n\n\nAll done! Press any key to exit.\nMay Vehk bestow his blessing upon your Muatra."
@@ -812,12 +821,12 @@ fi
 
 # Make portable package
 if [ $MAKE_PACKAGE ]; then
-  echo -e "\n>> Creating TES3MP package"
+  echo -e "\n>> Creating DreamWeave package"
 
   PACKAGE_BINARIES=( \
-    "tes3mp" \
-    "tes3mp-browser" \
-    "tes3mp-server" \
+    "dreamweave" \
+    "dreamweave-browser" \
+    "dreamweave-server" \
     "openmw-launcher" \
     "openmw-wizard" \
     "openmw-essimporter" \
@@ -856,7 +865,7 @@ if [ $MAKE_PACKAGE ]; then
     "osgPlugins" \
   )
 
-  LIBRARIES_TES3MP=( \
+  LIBRARIES_DREAMWEAVE=( \
     "libRakNetLibStatic.a" \
     "libtinfo.so" \
     "liblua5.1.so" \
@@ -874,9 +883,9 @@ if [ $MAKE_PACKAGE ]; then
     "liblua5.1.so" \
   )
 
-  # Exit if tes3mp hasn't been compiled yet
-  if [[ ! -f "$DEVELOPMENT"/tes3mp && ! -f "$DEVELOPMENT"/tes3mp-server ]]; then
-    echo -e "\nTES3MP has to be built before packaging"
+  # Exit if DreamWeave hasn't been compiled yet
+  if [[ ! -f "$DEVELOPMENT"/dreamweave && ! -f "$DEVELOPMENT"/dreamweave-server ]]; then
+    echo -e "\DreamWeave has to be built before packaging"
     exit 1
   fi
 
@@ -887,7 +896,7 @@ if [ $MAKE_PACKAGE ]; then
   cp -f "$CODE"/LICENSE "$PACKAGE_TMP"/LICENSE
 
   # Copy the source code
-  SOURCE_TMP="$BASE/TES3MP"
+  SOURCE_TMP="$BASE/Dreamweave"
   cp -r "$CODE" "$SOURCE_TMP"
   rm -r "$SOURCE_TMP/.git"
   tar cvf "$PACKAGE_TMP/source.tar.gz" -C "$BASE" "$(basename $SOURCE_TMP)"
@@ -914,7 +923,7 @@ if [ $MAKE_PACKAGE ]; then
   echo -e "\nCopying useful files"
   cp -r "$KEEPERS"/CoreScripts "$PACKAGE_TMP"/server
   cp -r "$KEEPERS"/*.cfg "$PACKAGE_TMP"
-  sed -i "s|home = .*|home = ./server|g" "$PACKAGE_TMP"/tes3mp-server-default.cfg
+  sed -i "s|home = .*|home = ./server|g" "$PACKAGE_TMP"/dreamweave-server-default.cfg
 
   # Copy whatever extra files are currently present
   if [ -d "$EXTRA" ]; then
@@ -926,7 +935,7 @@ if [ $MAKE_PACKAGE ]; then
   mkdir -p lib
   echo -e "\nCopying needed libraries"
 
-  LIBRARIES=("${LIBRARIES_OPENMW[@]}" "${LIBRARIES_TES3MP[@]}" "${LIBRARIES_EXTRA[@]}")
+  LIBRARIES=("${LIBRARIES_OPENMW[@]}" "${LIBRARIES_DREAMWEAVE[@]}" "${LIBRARIES_EXTRA[@]}")
   if [ $SERVER_ONLY ]; then LIBRARIES=("${LIBRARIES_SERVER[@]}"); fi
 
   for LIB in "${LIBRARIES[@]}"; do
@@ -946,7 +955,7 @@ if [ $MAKE_PACKAGE ]; then
 
   # Package info
 
-  PACKAGE_PREFIX="tes3mp"
+  PACKAGE_PREFIX="dreamweave"
   if [ $SERVER_ONLY ]; then
     PACKAGE_PREFIX="$PACKAGE_PREFIX-server"
   fi
@@ -954,54 +963,54 @@ if [ $MAKE_PACKAGE ]; then
   PACKAGE_ARCH=$(uname -m)
   PACKAGE_SYSTEM=$(uname -o  | sed 's,/,+,g')
   PACKAGE_DISTRO="$DISTRO"
-  PACKAGE_VERSION=$(cat "$CODE"/components/openmw-mp/Version.hpp | grep TES3MP_VERSION | awk -F'"' '{print $2}')
+  PACKAGE_VERSION=$(cat "$CODE"/components/openmw-mp/Version.hpp | grep DREAMWEAVE_VERSION | awk -F'"' '{print $2}')
   PACKAGE_COMMIT=$(git --git-dir=$CODE/.git rev-parse @ | head -c10)
   PACKAGE_COMMIT_SCRIPTS=$(git --git-dir=$KEEPERS/CoreScripts/.git rev-parse @ | head -c10)
 
   PACKAGE_NAME="$PACKAGE_PREFIX-$PACKAGE_SYSTEM-$PACKAGE_ARCH-release-$PACKAGE_VERSION-$PACKAGE_COMMIT-$PACKAGE_COMMIT_SCRIPTS"
   PACKAGE_DATE="$(date +"%Y-%m-%d")"
 
-  echo -e "TES3MP $PACKAGE_VERSION ($PACKAGE_COMMIT $PACKAGE_COMMIT_SCRIPTS) built on $PACKAGE_SYSTEM $PACKAGE_ARCH ($PACKAGE_DISTRO) on $PACKAGE_DATE by $USER ($HOSTNAME)" > "$PACKAGE_TMP"/tes3mp-package-info.txt
+  echo -e "DreamWeave $PACKAGE_VERSION ($PACKAGE_COMMIT $PACKAGE_COMMIT_SCRIPTS) built on $PACKAGE_SYSTEM $PACKAGE_ARCH ($PACKAGE_DISTRO) on $PACKAGE_DATE by $USER ($HOSTNAME)" > "$PACKAGE_TMP"/dreamweave-package-info.txt
 
   # Create pre-launch script
-  cat << 'EOF' > tes3mp-prelaunch
+  cat << 'EOF' > dream-prelaunch
 #!/bin/bash
 
 ARGS="$*"
 GAMEDIR="$(cd "$(dirname "$0")"; pwd -P)"
-TES3MP_HOME="$HOME/.config/openmw"
+DREAM_HOME="$HOME/.config/openmw"
 
 # If there are config files in the home directory, load those
 # Otherwise check the package/installation directory and load those
 # Otherwise copy them to the home directory
-if [[ "$ARGS" = 'tes3mp-server' ]]; then
-    if [[ -f "$TES3MP_HOME"/tes3mp-server.cfg ]]; then
+if [[ "$ARGS" = 'dreamweave-server' ]]; then
+    if [[ -f "$DREAM_HOME"/dreamweave-server.cfg ]]; then
         echo -e "Loading server config from the home directory"
         LOADING_FROM_HOME=true
-    elif [[ -f "$GAMEDIR"/tes3mp-server-default.cfg ]]; then
+    elif [[ -f "$GAMEDIR"/dreamweave-server-default.cfg ]]; then
         echo -e "Loading server config from the package directory"
     else
         echo -e "Server config not found in home and package directory, trying to copy from .example"
-        cp -f tes3mp-server-default.cfg.example "$TES3MP_HOME"/tes3mp-server.cfg
+        cp -f dreamweave-server-default.cfg.example "$DREAM_HOME"/dreamweave-server.cfg
         LOADING_FROM_HOME=true
     fi
     if [[ $LOADING_FROM_HOME ]]; then
-        if [[ -d "$TES3MP_HOME"/server ]]; then
+        if [[ -d "$DREAM_HOME"/server ]]; then
             echo -e "Loading CoreScripts folder from the home directory"
         else
             echo -e "CoreScripts folder not found in home directory, copying from package directory"
-            cp -rf "$GAMEDIR"/server/ "$TES3MP_HOME"/
-            sed -i "s|home = .*|home = $TES3MP_HOME/server |g" "$TES3MP_HOME"/tes3mp-server.cfg
+            cp -rf "$GAMEDIR"/server/ "$DREAM_HOME"/
+            sed -i "s|home = .*|home = $DREAM_HOME/server |g" "$DREAM_HOME"/dreamweave-server.cfg
         fi
     fi
 else
-    if [[ -f $TES3MP_HOME/tes3mp-client.cfg ]]; then
+    if [[ -f $DREAM_HOME/dreamweave-client.cfg ]]; then
         echo -e "Loading client config from the home directory"
-    elif [[ -f tes3mp-client-default.cfg ]]; then
+    elif [[ -f dreamweave-client-default.cfg ]]; then
         echo -e "Loading client config from the package directory"
     else
         echo -e "Client config not found in home and package directory, trying to copy from .example"
-        cp -f "$GAMEDIR"/tes3mp-client-default.cfg.example "$TES3MP_HOME"/tes3mp-client.cfg
+        cp -f "$GAMEDIR"/dreamweave-client-default.cfg.example "$DREAM_HOME"/dreamweave-client.cfg
     fi
 fi
 EOF
@@ -1015,7 +1024,7 @@ EOF
       WRAPPER="$BINARY"
       BINARY_RENAME="$BINARY.$PACKAGE_ARCH"
       mv "$BINARY" "$BINARY_RENAME"
-      printf "#!/bin/bash\n\nWRAPPER=\"\$(basename \$0)\"\nGAMEDIR=\"\$(dirname \$0)\"\ncd \"\$GAMEDIR\"\nif test -f ./tes3mp-prelaunch; then bash ./tes3mp-prelaunch \"\$WRAPPER\"; fi\nLD_LIBRARY_PATH=\"./lib\" ./$BINARY_RENAME \"\$@\"" > "$WRAPPER"
+      printf "#!/bin/bash\n\nWRAPPER=\"\$(basename \$0)\"\nGAMEDIR=\"\$(dirname \$0)\"\ncd \"\$GAMEDIR\"\nif test -f ./dream-prelaunch; then bash ./dream-prelaunch \"\$WRAPPER\"; fi\nLD_LIBRARY_PATH=\"./lib\" ./$BINARY_RENAME \"\$@\"" > "$WRAPPER"
     fi
   done
   chmod 755 *
@@ -1023,7 +1032,7 @@ EOF
   # Create archive
   echo -e "\nCreating archive"
 
-  PACKAGE_FOLDER="TES3MP"
+  PACKAGE_FOLDER="DreamWeave"
   if [ $SERVER_ONLY ]; then PACKAGE_FOLDER="$PACKAGE_FOLDER-server"; fi
 
   mv "$PACKAGE_TMP" "$BASE"/"$PACKAGE_FOLDER"
